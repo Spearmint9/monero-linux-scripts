@@ -17,3 +17,13 @@ This is the directory where the extracted contents will go.
 >urlMoneroDownloads="https://downloads.getmonero.org/gui/linux64"
 
 This URL comes from the [Downloads section](https://www.getmonero.org/downloads/)
+
+
+
+
+
+## Donation
+
+If you find this useful, consider donating
+
+XMR: 893MZq68h5hjHDs6FKtE9EPQeLZSc2YMHYZz9NVeQ8yKG4RWQ3PtXd93ZScfUKw7mAGxnaErPbzhWQBfYEBfZqhnSBNCZUx  
