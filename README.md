@@ -1,4 +1,4 @@
-## download-and-verify-latest.bash
+## download-and-verify-latest
 
 This script downloads and verifies the hash of the latest version, if successful, the download is then extracted at the specified destination. 
 
@@ -19,7 +19,17 @@ This is the directory where the extracted contents will go.
 This URL comes from the [Downloads section](https://www.getmonero.org/downloads/)
 
 
+## run-node
 
+This script requires the execution of the above script with the following parameters: 
+
+>urlMoneroDownloads="https://downloads.getmonero.org/cli/linux64"
+
+You can also modify the path variables to match your environment, mainly: 
+
+>pathBase="/home/usr/Monero"
+
+This variable should NOT end with forward slash [ / ]
 
 
 ## Donation
