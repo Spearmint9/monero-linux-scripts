@@ -21,4 +21,5 @@ $pathMoneroNodeBinary \
   --enable-dns-blocklist \
   --limit-rate-up 1048576 \
   --limit-rate-down 1048576 \
+  --non-interactive \
 2>&1 | tee -a $pathScriptLog
