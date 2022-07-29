@@ -1,7 +1,12 @@
 #!/bin/bash
-pathTempDir="/tmp/monero/"
+pathTempDir="/tmp/Monero/"
+pathBinaryFateKey="${pathTempDir}binaryfate.asc"
+pathHashes="${pathTempDir}hashes.txt"
 pathExtractTo="/home/usr/Monero/"
 urlMoneroDownloads="https://downloads.getmonero.org/gui/linux64"
+urlMoneroSigningKey="https://raw.githubusercontent.com/monero-project/monero/master/utils/gpg_keys/binaryfate.asc"
+urlMoneroHashes="https://www.getmonero.org/downloads/hashes.txt"
+gpgBinaryFateFingerprint="81AC591FE9C4B65C5806AFC3F0AF4D462A0BDF92"
 
 
 function echoOk () {
@@ -10,31 +15,52 @@ function echoOk () {
 function echoErr () {
     echo -e "\e[1;31m$1\e[0m"
 }
+function wgetUrl () {
+	wget \
+		--quiet \
+		--content-disposition \
+		--directory-prefix=$pathTempDir \
+		--show-progress \
+		$1
+}
 
 
 clear
-rm -r $pathTempDir
+rm -r $pathTempDir > /dev/null 2>&1
 mkdir -p $pathTempDir
 mkdir -p $pathExtractTo
 
-wget \
-    --quiet \
-    --content-disposition \
-    --directory-prefix=$pathTempDir \
-    --show-progress \
-     $urlMoneroDownloads
+wgetUrl $urlMoneroSigningKey     
 
-fileName=$(ls $pathTempDir)
-filePath=$pathTempDir$fileName
-fileHash=$(shasum -a 256 $filePath | awk '{ print $1 }')
-fileHash="$fileHash  $fileName"
-
-hashes=$(wget --show-progress --quiet -O - https://www.getmonero.org/downloads/hashes.txt)
-
-if [[ $hashes == *"$fileHash"* ]]; then
-    echoOk "Hash found in hashes, extracting"
-    tar -xf $filePath --directory $pathExtractTo --checkpoint=.100
-    echoOk "Done"
-else
-    echoErr "Invalid hash, not found in hashes"
+gpgDownloadedFingerprint=$(gpg --show-keys --with-colons $pathBinaryFateKey | awk -F: '/^pub:.*/ { getline; print $10}')
+if [[ $gpgBinaryFateFingerprint == $gpgDownloadedFingerprint ]]; then
+	echoOk "binaryFate key is valid, importing"
+	gpg --import $pathBinaryFateKey > /dev/null 2>&1
+	wgetUrl $urlMoneroHashes
+	gpgHashesVerification=$(gpg --verify $pathHashes 2>&1)
+	
+	if [[ $gpgHashesVerification =~ "Good signature" ]]; then
+		echoOk "hashes.txt has valid binaryFate signature"
+		wgetUrl $urlMoneroDownloads
+			
+		filePath=$(ls ${pathTempDir}monero*)
+		fileHash=$(shasum -a 256 $filePath | awk '{ print $1 }')
+		hashes=$(cat $pathHashes)
+		
+		if [[ $hashes == *"$fileHash"* ]]; then
+			echoOk "Hash found in hashes, extracting"
+			tar -xf $filePath --directory $pathExtractTo --checkpoint=.100
+			echoOk "\nDone"
+		else
+			echoErr "Invalid hash, not found in hashes"
+		fi
+	else
+	    echoErr "Invalid hashes signature"
+	fi
+else 
+	echoErr "Unexpected downloaded key: [$gpgDownloadedFingerprint]"
+	echoErr "   Expected key should be: [$gpgBinaryFateFingerprint]"
 fi
+
+
+
